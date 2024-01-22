@@ -1,5 +1,5 @@
 module "projectx-eks-cluster" {
-  source                     = "../../eks-module"
+  source                     = "../../dummy-module-1"
   vpc_id                     = var.vpc_id
   subnet_ids                 = var.subnet_ids
   cluster_version            = var.cluster_version
@@ -16,7 +16,7 @@ module "projectx-eks-cluster" {
 }
 
 module "projectx-eks-cluster-2" {
-  source                     = "../../eks-module"
+  source                     = "../../dummy-module-2"
   vpc_id                     = var.vpc_id
   subnet_ids                 = var.subnet_ids
   cluster_version            = var.cluster_version
