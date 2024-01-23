@@ -3,7 +3,3 @@ resource "null_resource" "example" {
     command = "echo ${local.greeting_message}"
   }
 }
-
-output "output_name" {
-  value = local.greeting_message
-}
