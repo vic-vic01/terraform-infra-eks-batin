@@ -18,7 +18,7 @@ env:
 
 jobs:
   deploy-terraform:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # default settings to apply for all the steps
     defaults:
       run:
