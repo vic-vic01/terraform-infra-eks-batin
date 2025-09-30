@@ -18,7 +18,7 @@ jobs:
     # if PR is into main branch,
     # and if PR approval was received
     if: github.event.pull_request.base.ref == 'main' && github.event.review.state == 'APPROVED'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # default settings to apply for all the steps
     defaults:
       run:
