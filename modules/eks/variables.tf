@@ -17,3 +17,21 @@ variable "env" {
   type        = string
   description = "environment name for EKS cluster (dev, staging, prod)"
 }
+
+variable "desired_size" {
+  type        = number
+  description = "desired number of worker nodes"
+  default     = 3
+}
+
+variable "min_size" {
+  type        = number
+  description = "minimum number of worker nodes"
+  default     = 1
+}
+
+variable "max_size" {
+  type        = number
+  description = "max number of worker nodes"
+  default     = 5
+}
