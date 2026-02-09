@@ -70,3 +70,20 @@ resource "aws_iam_instance_profile" "eks_node_instance_profile" {
   name = "${var.cluster_name}-node-instance-profile"
   role = aws_iam_role.eks_node_role.name
 }
+
+resource "aws_security_group" "eks_nodes" {
+  name        = "${var.cluster_name}-node-sg"
+  description = "Security group for EKS worker nodes"
+  vpc_id      = var.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-node-sg"
+  }
+}
