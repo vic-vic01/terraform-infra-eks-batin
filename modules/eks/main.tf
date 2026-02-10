@@ -94,7 +94,7 @@ data "aws_ami" "eks_ami" {
 
   filter {
     name   = "name"
-    values = ["amazon-eks-node-1.30-v20260*"]
+    values = ["amazon-eks-node-1.29-*"]
   }
 }
 
@@ -112,3 +112,21 @@ resource "aws_launch_template" "eks_nodes" {
   user_data = base64encode("#!/bin/bash\n/etc/eks/bootstrap.sh ${var.cluster_name}")
 }
 
+resource "aws_autoscaling_group" "eks_nodes" {
+  name                = "${var.cluster_name}-node-asg"
+  min_size            = var.min_size
+  max_size            = var.max_size
+  desired_capacity    = var.desired_size
+  vpc_zone_identifier = var.subnet_ids
+
+  launch_template {
+    id      = aws_launch_template.eks_nodes.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "kubernetes.io/cluster/${var.cluster_name}"
+    value               = "owned"
+    propagate_at_launch = true
+  }
+}
