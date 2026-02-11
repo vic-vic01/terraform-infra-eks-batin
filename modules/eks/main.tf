@@ -100,7 +100,7 @@ data "aws_ami" "eks_ami" {
 
 resource "aws_launch_template" "eks_nodes" {
   name          = "${var.cluster_name}-node-template"
-  image_id = data.aws_ami.eks_ami.id
+  image_id      = data.aws_ami.eks_ami.id
   instance_type = "t3.medium"
 
   iam_instance_profile {
@@ -119,9 +119,19 @@ resource "aws_autoscaling_group" "eks_nodes" {
   desired_capacity    = var.desired_size
   vpc_zone_identifier = var.subnet_ids
 
-  launch_template {
-    id      = aws_launch_template.eks_nodes.id
-    version = "$Latest"
+  mixed_instances_policy {                    
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.eks_nodes.id
+        version            = "$Latest"
+      }
+    }
+
+    instances_distribution {                  
+      on_demand_base_capacity                  = 0
+      on_demand_percentage_above_base_capacity = 20
+      spot_allocation_strategy                 = "lowest-price"
+    }
   }
 
   tag {
