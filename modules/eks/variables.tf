@@ -35,3 +35,18 @@ variable "max_size" {
   description = "max number of worker nodes"
   default     = 5
 }
+
+variable "sso_admin_arn" {
+  type = string
+  description = "SSO admin role arn"
+}
+
+variable "github_ci_role_arn" {
+  type = string
+  description = "GitHub CI role arn"
+}
+
+variable "github_tf_role_arn" {
+  type = string
+  description = "GitHub Tf role arn"
+}
