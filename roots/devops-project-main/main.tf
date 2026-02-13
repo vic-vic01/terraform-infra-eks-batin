@@ -28,11 +28,11 @@ module "vpc" {
 module "eks" {
   source = "../../modules/eks"
 
-  cluster_name = var.cluster_name
-  vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.public_subnet_ids
-  env          = var.environment
-  sso_admin_arn          = var.sso_admin_arn
-  github_ci_role_arn     = var.github_ci_role_arn
-  github_tf_role_arn     = var.github_tf_role_arn
+  cluster_name       = var.cluster_name
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = module.vpc.public_subnet_ids
+  env                = var.environment
+  sso_admin_arn      = var.sso_admin_arn
+  github_ci_role_arn = var.github_ci_role_arn
+  github_tf_role_arn = var.github_tf_role_arn
 }
