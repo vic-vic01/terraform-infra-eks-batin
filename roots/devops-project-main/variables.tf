@@ -37,11 +37,6 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "eks_cluster_name" {
-  description = "Name of the EKS cluster"
-  type        = string
-}
-
 variable "sso_admin_arn" {
   type = string
   description = "SSO admin role arn"

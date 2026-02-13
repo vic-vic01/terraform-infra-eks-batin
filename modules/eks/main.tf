@@ -200,9 +200,13 @@ resource "aws_eks_access_policy_association" "github_terraform_policy" {
 resource "aws_eks_addon" "vpc_cni" {
   cluster_name = aws_eks_cluster.main.name
   addon_name   = "vpc-cni"
+
+  depends_on = [aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy]
 }
 
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name = aws_eks_cluster.main.name
   addon_name   = "aws-ebs-csi-driver"
+
+  depends_on = [aws_iam_role_policy_attachment.node_AmazonEBSCSIDriverPolicy]
 }
