@@ -19,14 +19,18 @@ env:
 jobs:
   deploy-terraform:
     runs-on: ubuntu-22.04
-    # default settings to apply for all the steps
+    environment: dev
+  
+    env:
+      # Pass ARNs as Terraform variables
+      TF_VAR_sso_admin_arn: ${{ vars.SSO_ADMIN_ARN }}
+      TF_VAR_github_ci_role_arn: ${{ vars.CI_ROLE_ARN }}
+      TF_VAR_github_tf_role_arn: ${{ vars.TF_ROLE_ARN }}
+  
     defaults:
       run:
         working-directory: ./roots/devops-project-main
         shell: bash
-    # environment: ${{ (github.ref == 'refs/heads/main' && 'production') || (github.ref == 'refs/heads/staging' && 'staging') || 'dev' }}
-    # since production and staging are not ready, deploy only to dev for now
-    environment: dev
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # equivalent of "git clone repo"
