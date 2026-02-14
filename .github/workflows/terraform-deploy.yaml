@@ -55,9 +55,13 @@ jobs:
         run: terraform fmt -check
 
       # Generates an execution plan for Terraform
-      - name: Terraform Plan
-        run: terraform plan -input=false -var-file=${ENVIRONMENT_STAGE}.tfvars
+      # - name: Terraform Plan
+      #   run: terraform plan -input=false -var-file=${ENVIRONMENT_STAGE}.tfvars
 
       # Build infrastructure according to Terraform configuration files
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -var-file=${ENVIRONMENT_STAGE}.tfvars
+      # - name: Terraform Apply
+      #   run: terraform apply -auto-approve -input=false -var-file=${ENVIRONMENT_STAGE}.tfvars
+  
+      # Temporary: Destroy existing resources
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -input=false -var-file=${ENVIRONMENT_STAGE}.tfvars
