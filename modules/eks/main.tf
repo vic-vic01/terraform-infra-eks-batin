@@ -82,8 +82,16 @@ resource "aws_iam_instance_profile" "eks_node_instance_profile" {
 
 resource "aws_security_group" "eks_nodes" {
   name        = "${var.cluster_name}-node-sg"
-  description = "Security group for EKS worker nodes"
+  description = "security group for EKS worker nodes"
   vpc_id      = var.vpc_id
+
+  ingress {
+    description = "Allow nodes to communicate with each other"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "-1"
+    self        = true
+  }
 
   egress {
     from_port   = 0
@@ -127,6 +135,8 @@ resource "aws_autoscaling_group" "eks_nodes" {
   max_size            = var.max_size
   desired_capacity    = var.desired_size
   vpc_zone_identifier = var.subnet_ids
+
+  depends_on = [aws_eks_cluster.main]
 
   mixed_instances_policy {                    
     launch_template {
@@ -205,12 +215,12 @@ resource "aws_eks_addon" "vpc_cni" {
   cluster_name = aws_eks_cluster.main.name
   addon_name   = "vpc-cni"
 
-  depends_on = [aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy]
+  depends_on = [aws_autoscaling_group.eks_nodes]
 }
 
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name = aws_eks_cluster.main.name
   addon_name   = "aws-ebs-csi-driver"
 
-  depends_on = [aws_iam_role_policy_attachment.node_AmazonEBSCSIDriverPolicy]
+  depends_on = [aws_autoscaling_group.eks_nodes]
 }
