@@ -42,7 +42,7 @@ resource "aws_eks_cluster" "main" {
 
 resource "aws_iam_role" "eks_node_role" {
   name = "${var.cluster_name}-node-role"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -73,7 +73,7 @@ resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOn
 resource "aws_iam_role_policy_attachment" "node_AmazonEBSCSIDriverPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.eks_node_role.name
-} 
+}
 
 resource "aws_iam_instance_profile" "eks_node_instance_profile" {
   name = "${var.cluster_name}-node-instance-profile"
@@ -91,6 +91,22 @@ resource "aws_security_group" "eks_nodes" {
     to_port     = 0
     protocol    = "-1"
     self        = true
+  }
+
+  ingress {
+    description = "allow cluster control plane communication"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
+  ingress {
+    description = "allow kubelet API"
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   egress {
@@ -127,7 +143,11 @@ resource "aws_launch_template" "eks_nodes" {
 
   vpc_security_group_ids = [aws_security_group.eks_nodes.id]
 
-  user_data = base64encode("#!/bin/bash\n/etc/eks/bootstrap.sh ${var.cluster_name}")
+  user_data = base64encode(<<-EOF
+#!/bin/bash
+/etc/eks/bootstrap.sh ${var.cluster_name}
+EOF
+  )
 }
 
 resource "aws_autoscaling_group" "eks_nodes" {
@@ -139,7 +159,7 @@ resource "aws_autoscaling_group" "eks_nodes" {
 
   depends_on = [aws_eks_cluster.main]
 
-  mixed_instances_policy {                    
+  mixed_instances_policy {
     launch_template {
       launch_template_specification {
         launch_template_id = aws_launch_template.eks_nodes.id
@@ -147,9 +167,9 @@ resource "aws_autoscaling_group" "eks_nodes" {
       }
     }
 
-    instances_distribution {                  
+    instances_distribution {
       on_demand_base_capacity                  = 0
-      on_demand_percentage_above_base_capacity = 100
+      on_demand_percentage_above_base_capacity = 20
       spot_allocation_strategy                 = "lowest-price"
     }
   }
@@ -180,7 +200,7 @@ resource "aws_eks_access_policy_association" "sso_admin_policy" {
   cluster_name  = aws_eks_cluster.main.name
   principal_arn = var.sso_admin_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-  
+
   access_scope {
     type = "cluster"
   }
@@ -192,7 +212,7 @@ resource "aws_eks_access_policy_association" "github_ci_policy" {
   cluster_name  = aws_eks_cluster.main.name
   principal_arn = var.github_ci_role_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
-  
+
   access_scope {
     type = "cluster"
   }
@@ -204,7 +224,7 @@ resource "aws_eks_access_policy_association" "github_terraform_policy" {
   cluster_name  = aws_eks_cluster.main.name
   principal_arn = var.github_tf_role_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
-  
+
   access_scope {
     type = "cluster"
   }
@@ -216,12 +236,24 @@ resource "aws_eks_addon" "vpc_cni" {
   cluster_name = aws_eks_cluster.main.name
   addon_name   = "vpc-cni"
 
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "15m"
+  }
+
   depends_on = [aws_autoscaling_group.eks_nodes]
 }
 
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name = aws_eks_cluster.main.name
   addon_name   = "aws-ebs-csi-driver"
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "15m"
+  }
 
   depends_on = [aws_autoscaling_group.eks_nodes]
 }

@@ -37,16 +37,21 @@ variable "max_size" {
 }
 
 variable "sso_admin_arn" {
-  type = string
+  type        = string
   description = "SSO admin role arn"
 }
 
 variable "github_ci_role_arn" {
-  type = string
+  type        = string
   description = "GitHub CI role arn"
 }
 
 variable "github_tf_role_arn" {
-  type = string
+  type        = string
   description = "GitHub Tf role arn"
 }
+
+variable "vpc_cidr" {
+  description = "VPC CIDR block for security group rules"
+  type        = string
+} 

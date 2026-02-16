@@ -31,6 +31,7 @@ module "eks" {
   cluster_name       = var.cluster_name
   vpc_id             = module.vpc.vpc_id
   subnet_ids         = module.vpc.public_subnet_ids
+  vpc_cidr           = module.vpc.vpc_cidr
   env                = var.environment
   sso_admin_arn      = var.sso_admin_arn
   github_ci_role_arn = var.github_ci_role_arn
