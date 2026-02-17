@@ -156,9 +156,12 @@ resource "aws_launch_template" "eks_nodes" {
 
   user_data = base64encode(<<-EOF
 #!/bin/bash
-/etc/eks/bootstrap.sh ${var.cluster_name}
+set -ex
+/etc/eks/bootstrap.sh '${aws_eks_cluster.main.name}' \
+  --b64-cluster-ca '${aws_eks_cluster.main.certificate_authority[0].data}' \
+  --apiserver-endpoint '${aws_eks_cluster.main.endpoint}'
 EOF
-  )
+)
 }
 
 resource "aws_autoscaling_group" "eks_nodes" {
@@ -197,16 +200,6 @@ resource "aws_eks_access_entry" "sso_admin" {
   principal_arn = var.sso_admin_arn
 }
 
-resource "aws_eks_access_entry" "github_ci" {
-  cluster_name  = aws_eks_cluster.main.name
-  principal_arn = var.github_ci_role_arn
-}
-
-resource "aws_eks_access_entry" "github_terraform" {
-  cluster_name  = aws_eks_cluster.main.name
-  principal_arn = var.github_tf_role_arn
-}
-
 resource "aws_eks_access_policy_association" "sso_admin_policy" {
   cluster_name  = aws_eks_cluster.main.name
   principal_arn = var.sso_admin_arn
@@ -217,30 +210,6 @@ resource "aws_eks_access_policy_association" "sso_admin_policy" {
   }
 
   depends_on = [aws_eks_access_entry.sso_admin]
-}
-
-resource "aws_eks_access_policy_association" "github_ci_policy" {
-  cluster_name  = aws_eks_cluster.main.name
-  principal_arn = var.github_ci_role_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
-
-  access_scope {
-    type = "cluster"
-  }
-
-  depends_on = [aws_eks_access_entry.github_ci]
-}
-
-resource "aws_eks_access_policy_association" "github_terraform_policy" {
-  cluster_name  = aws_eks_cluster.main.name
-  principal_arn = var.github_tf_role_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
-
-  access_scope {
-    type = "cluster"
-  }
-
-  depends_on = [aws_eks_access_entry.github_terraform]
 }
 
 resource "aws_eks_addon" "vpc_cni" {
