@@ -183,7 +183,7 @@ resource "aws_autoscaling_group" "eks_nodes" {
 
     instances_distribution {
       on_demand_base_capacity                  = 0
-      on_demand_percentage_above_base_capacity = 20
+      on_demand_percentage_above_base_capacity = 100
       spot_allocation_strategy                 = "lowest-price"
     }
   }
@@ -203,6 +203,13 @@ resource "aws_eks_access_entry" "sso_admin" {
 resource "aws_eks_access_entry" "github_ci" {
   cluster_name  = aws_eks_cluster.main.name
   principal_arn = var.github_ci_role_arn
+}
+
+# allow worker nodes to join the cluster
+resource "aws_eks_access_entry" "nodes" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_iam_role.eks_node_role.arn
+  type          = "EC2_LINUX"
 }
 
 resource "aws_eks_access_policy_association" "sso_admin_policy" {
