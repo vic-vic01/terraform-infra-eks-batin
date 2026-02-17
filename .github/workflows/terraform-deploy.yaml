@@ -70,9 +70,7 @@ jobs:
           aws sts get-caller-identity
           
           echo "=== Update kubeconfig ==="
-          aws eks update-kubeconfig \
-            --name eks-dev-cluster \
-            --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig --name eks-dev-cluster --region ${{ env.AWS_REGION }}
           
           echo "=== Test kubectl connection ==="
           kubectl get svc

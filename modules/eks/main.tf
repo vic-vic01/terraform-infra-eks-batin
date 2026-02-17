@@ -202,14 +202,7 @@ resource "aws_eks_access_entry" "sso_admin" {
 
 resource "aws_eks_access_entry" "github_ci" {
   cluster_name  = aws_eks_cluster.main.name
-  principal_arn = var.github_ci_role_arn
-}
-
-# allow worker nodes to join the cluster
-resource "aws_eks_access_entry" "nodes" {
-  cluster_name  = aws_eks_cluster.main.name
-  principal_arn = aws_iam_role.eks_node_role.arn
-  type          = "EC2_LINUX"
+  principal_arn = "arn:aws:iam::036692858685:role/GitHubActionsTerraformAndPlatformToolsIAMrole"
 }
 
 resource "aws_eks_access_policy_association" "sso_admin_policy" {
@@ -226,7 +219,7 @@ resource "aws_eks_access_policy_association" "sso_admin_policy" {
 
 resource "aws_eks_access_policy_association" "github_ci_policy" {
   cluster_name  = aws_eks_cluster.main.name
-  principal_arn = var.github_ci_role_arn
+  principal_arn = "arn:aws:iam::036692858685:role/GitHubActionsTerraformAndPlatformToolsIAMrole"
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
