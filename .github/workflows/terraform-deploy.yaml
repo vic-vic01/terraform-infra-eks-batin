@@ -62,27 +62,3 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve -input=false -var-file=${ENVIRONMENT_STAGE}.tfvars
   
-      # Register worker nodes in cluster by applying aws-auth ConfigMap
-      - name: Configure kubectl and apply aws-auth ConfigMap
-        if: success()
-        run: |
-          echo "=== AWS Identity ==="
-          aws sts get-caller-identity
-          
-          echo "=== Update kubeconfig ==="
-          aws eks update-kubeconfig --name eks-dev-cluster --region ${{ env.AWS_REGION }}
-          
-          echo "=== Test kubectl connection ==="
-          kubectl get svc
-          
-          echo "Waiting for nodes to start..."
-          sleep 240
-          
-          echo "Applying aws-auth ConfigMap..."
-          kubectl apply -f ../../modules/eks/aws-auth-configmap.yaml --validate=false
-          
-          echo "Waiting for nodes to register..."
-          sleep 90
-          
-          echo "Checking node status:"
-          kubectl get nodes

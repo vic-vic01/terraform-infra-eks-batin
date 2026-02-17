@@ -55,3 +55,9 @@ variable "vpc_cidr" {
   description = "VPC CIDR block for security group rules"
   type        = string
 } 
+
+variable "service_cidr" {
+  type        = string
+  description = "Kubernetes service CIDR block"
+  default     = "172.20.0.0/16"
+}

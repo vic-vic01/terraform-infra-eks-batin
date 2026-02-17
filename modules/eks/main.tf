@@ -25,10 +25,10 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
   role_arn = aws_iam_role.eks_cluster_role.arn
-  version  = "1.29"
+  version  = "1.34"
 
   access_config {
-    authentication_mode = "API_AND_CONFIG_MAP"
+    authentication_mode = "API"
   }
 
   vpc_config {
@@ -139,7 +139,7 @@ data "aws_ami" "eks_ami" {
 
   filter {
     name   = "name"
-    values = ["amazon-eks-node-1.29-*"]
+    values = ["amazon-eks-node-al2023-x86_64-standard-1.34-*"]
   }
 }
 
@@ -155,11 +155,22 @@ resource "aws_launch_template" "eks_nodes" {
   vpc_security_group_ids = [aws_security_group.eks_nodes.id]
 
   user_data = base64encode(<<-EOF
-#!/bin/bash
-set -ex
-/etc/eks/bootstrap.sh '${aws_eks_cluster.main.name}' \
-  --b64-cluster-ca '${aws_eks_cluster.main.certificate_authority[0].data}' \
-  --apiserver-endpoint '${aws_eks_cluster.main.endpoint}'
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: application/node.eks.aws
+
+---
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  cluster:
+    name: ${aws_eks_cluster.main.name}
+    apiServerEndpoint: ${aws_eks_cluster.main.endpoint}
+    certificateAuthority: ${aws_eks_cluster.main.certificate_authority[0].data}
+    cidr: ${var.service_cidr}
+--BOUNDARY--
 EOF
 )
 }
@@ -183,7 +194,7 @@ resource "aws_autoscaling_group" "eks_nodes" {
 
     instances_distribution {
       on_demand_base_capacity                  = 0
-      on_demand_percentage_above_base_capacity = 100
+      on_demand_percentage_above_base_capacity = 20
       spot_allocation_strategy                 = "lowest-price"
     }
   }
@@ -202,7 +213,7 @@ resource "aws_eks_access_entry" "sso_admin" {
 
 resource "aws_eks_access_entry" "github_ci" {
   cluster_name  = aws_eks_cluster.main.name
-  principal_arn = "arn:aws:iam::036692858685:role/GitHubActionsTerraformAndPlatformToolsIAMrole"
+  principal_arn = var.github_ci_role_arn
 }
 
 resource "aws_eks_access_policy_association" "sso_admin_policy" {
@@ -219,7 +230,7 @@ resource "aws_eks_access_policy_association" "sso_admin_policy" {
 
 resource "aws_eks_access_policy_association" "github_ci_policy" {
   cluster_name  = aws_eks_cluster.main.name
-  principal_arn = "arn:aws:iam::036692858685:role/GitHubActionsTerraformAndPlatformToolsIAMrole"
+  principal_arn = var.github_ci_role_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
@@ -227,6 +238,14 @@ resource "aws_eks_access_policy_association" "github_ci_policy" {
   }
 
   depends_on = [aws_eks_access_entry.github_ci]
+}
+
+resource "aws_eks_access_entry" "nodes" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_iam_role.eks_node_role.arn
+  type          = "EC2_LINUX"
+
+  depends_on = [aws_eks_cluster.main]
 }
 
 resource "aws_eks_addon" "vpc_cni" {
