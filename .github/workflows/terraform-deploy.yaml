@@ -66,7 +66,10 @@ jobs:
       - name: Configure kubectl and apply aws-auth ConfigMap
         if: success()
         run: |
-          aws eks update-kubeconfig --name eks-dev-cluster --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig \
+            --name eks-dev-cluster \
+            --region ${{ env.AWS_REGION }} \
+            --role-arn ${{ vars.IAM_ROLE }}
           
           echo "Waiting for nodes to start..."
           sleep 240
