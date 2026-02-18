@@ -28,14 +28,16 @@ module "vpc" {
 module "eks" {
   source = "../../modules/eks"
 
-  cluster_name       = var.cluster_name
-  vpc_id             = module.vpc.vpc_id
-  subnet_ids         = module.vpc.public_subnet_ids
-  vpc_cidr           = module.vpc.vpc_cidr
-  env                = var.environment
-  sso_admin_arn      = var.sso_admin_arn
-  github_ci_role_arn = var.github_ci_role_arn
-  github_tf_role_arn = var.github_tf_role_arn
-  kubernetes_version = var.kubernetes_version
-  instance_type      = var.instance_type
+  cluster_name            = var.cluster_name
+  vpc_id                  = module.vpc.vpc_id
+  subnet_ids              = module.vpc.public_subnet_ids
+  vpc_cidr                = module.vpc.vpc_cidr
+  env                     = var.environment
+  sso_admin_arn           = var.sso_admin_arn
+  github_ci_role_arn      = var.github_ci_role_arn
+  github_tf_role_arn      = var.github_tf_role_arn
+  kubernetes_version      = var.kubernetes_version
+  instance_type           = var.instance_type
+  on_demand_percentage    = var.on_demand_percentage
+  on_demand_base_capacity = var.on_demand_base_capacity
 }

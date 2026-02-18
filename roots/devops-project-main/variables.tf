@@ -61,3 +61,13 @@ variable "instance_type" {
   type        = string
   description = "EC2 instance type for worker nodes"
 }
+
+variable "on_demand_percentage" {
+  type        = number
+  description = "% of on-demand instances in ASG"
+}
+
+variable "on_demand_base_capacity" {
+  type        = number
+  description = "base number of on-demand instances in ASG"
+}
