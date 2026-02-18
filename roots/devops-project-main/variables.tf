@@ -51,3 +51,13 @@ variable "github_tf_role_arn" {
   type        = string
   description = "GitHub Tf role arn"
 }
+
+variable "kubernetes_version" {
+  type        = string
+  description = "Kubernetes version for EKS cluster"
+}
+
+variable "instance_type" {
+  type        = string
+  description = "EC2 instance type for worker nodes"
+}

@@ -36,4 +36,6 @@ module "eks" {
   sso_admin_arn      = var.sso_admin_arn
   github_ci_role_arn = var.github_ci_role_arn
   github_tf_role_arn = var.github_tf_role_arn
+  kubernetes_version = var.kubernetes_version
+  instance_type      = var.instance_type
 }
