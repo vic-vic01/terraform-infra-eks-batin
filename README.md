@@ -117,11 +117,13 @@ aws eks update-kubeconfig --name <cluster_name> --region us-east-1
 
 ## Challenges and Solutions
 
-### 1. EKS Version Problem
-I started with EKS version 1.30 but got error "Your query returned no results" 
-when running terraform plan. I checked AWS docs and realized AMI for 1.30 is 
-not available in us-east-1 yet. Changed to version 1.29 and it worked. 
-Now I always check AMI availability before choosing EKS version.
+### 1. EKS Version and AMI Compatibility
+When upgrading the cluster to version 1.34, Terraform plan failed with 
+"Your query returned no results" on the AMI data source. After investigating, 
+I found that AWS switched to Amazon Linux 2023 as default OS starting from 
+Kubernetes 1.30, which uses nodeadm instead of the old bootstrap.sh script. 
+Fixed by updating the AMI filter to AL2023 format and rewriting user data 
+to use NodeConfig API.
 
 ### 2. Access Entries Issue  
 I added policy associations but forgot to create actual access entry resources 
