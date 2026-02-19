@@ -7,7 +7,7 @@ Creates an EKS cluster with custom VPC on AWS using Terraform.
 This infrastructure includes:
 
 - **VPC** - Custom VPC with public and private subnets across 3 availability zones
-- **EKS Cluster** - Kubernetes version 1.29 control plane
+- **EKS Cluster** - Kubernetes version 1.34 control plane
 - **Worker Nodes** - Self-managed EC2 instances in Auto Scaling Group
 - **Mixed Instances Policy** - Cost optimization: 20% on-demand, 80% spot instances
 - **IAM Roles** - Separate roles for cluster and worker nodes with required policies
@@ -27,7 +27,14 @@ This infrastructure includes:
 terraform-infra-25b-centos/
 ├── modules/
 │   ├── vpc/          # VPC module: networking resources
-│   └── eks/          # EKS module: cluster, nodes, IAM, add-ons
+│   └── eks/          # EKS module
+│       ├── cluster.tf    # EKS cluster and security group
+│       ├── iam.tf        # IAM roles and policies
+│       ├── nodes.tf      # Launch template and ASG
+│       ├── access.tf     # Access entries
+│       ├── addons.tf     # EKS add-ons
+│       ├── variables.tf  # Variable definitions
+│       └── outputs.tf    # Output values
 └── roots/
     └── devops-project-main/
         ├── main.tf        # Module calls
@@ -83,20 +90,26 @@ The project uses a modular structure:
 
 ## Key Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `cluster_name` | Name of the EKS cluster | - |
-| `vpc_cidr` | CIDR block for VPC | - |
-| `environment` | Environment name (dev, staging, prod) | - |
-| `availability_zones` | List of AZs for subnets | - |
-| `public_subnet_cidrs` | CIDR blocks for public subnets | - |
-| `private_subnet_cidrs` | CIDR blocks for private subnets | - |
-| `desired_size` | Desired number of worker nodes | 3 |
-| `min_size` | Minimum number of worker nodes | 1 |
-| `max_size` | Maximum number of worker nodes | 5 |
-| `sso_admin_arn` | ARN of SSO admin role for cluster access | - |
-| `github_ci_role_arn` | ARN of GitHub CI role | - |
-| `github_tf_role_arn` | ARN of GitHub Terraform role | - |
+| Variable | Description |
+|----------|-------------|
+| `cluster_name` | Name of the EKS cluster |
+| `vpc_cidr` | CIDR block for VPC |
+| `environment` | Environment name (dev, staging, prod) |
+| `availability_zones` | List of AZs for subnets |
+| `public_subnet_cidrs` | CIDR blocks for public subnets |
+| `private_subnet_cidrs` | CIDR blocks for private subnets |
+| `kubernetes_version` | Kubernetes version for EKS cluster |
+| `desired_size` | Desired number of worker nodes |
+| `min_size` | Minimum number of worker nodes |
+| `max_size` | Maximum number of worker nodes |
+| `instance_type` | EC2 instance type for worker nodes |
+| `ami_owner` | AWS account ID that owns the EKS AMI |
+| `service_cidr` | Kubernetes service CIDR block |
+| `on_demand_percentage` | % of on-demand instances in ASG |
+| `on_demand_base_capacity` | Base number of on-demand instances |
+| `sso_admin_arn` | ARN of SSO admin role for cluster access |
+| `github_ci_role_arn` | ARN of GitHub CI role |
+| `github_tf_role_arn` | ARN of GitHub Terraform role |
 
 See `variables.tf` for complete list and descriptions.
 
@@ -125,17 +138,24 @@ Kubernetes 1.30, which uses nodeadm instead of the old bootstrap.sh script.
 Fixed by updating the AMI filter to AL2023 format and rewriting user data 
 to use NodeConfig API.
 
-### 2. Access Entries Issue  
-I added policy associations but forgot to create actual access entry resources 
-first. Got terraform error about "undeclared resource". Used grep to find the 
-problem - I only had depends_on without the resources. Fixed by creating 
-access entries first, then adding policies. This taught me to create resources 
-before referencing them in depends_on.
+### 2. Node Authentication Issue
+Nodes were not joining the cluster after deployment. Spent a lot of time 
+debugging - turned out GitHub Actions was running under a different IAM role 
+than the one configured in Access Entries. Fixed by making sure the correct 
+role ARN is passed via variables instead of hardcoding it.
 
-### 3. Duplicate Variables
-While writing this README, I noticed two variables doing same thing: 
-cluster_name and eks_cluster_name. This was confusing. I removed 
-eks_cluster_name and kept only cluster_name everywhere. Code is cleaner now.
+### 3. EKS Module Got Too Big
+main.tf grew to 250+ lines which made it hard to navigate and debug. 
+Split it into separate files by resource type: cluster.tf, iam.tf, nodes.tf, 
+access.tf, addons.tf. Also removed all hardcoded default values from variables 
+and moved them to dev.tfvars. Much easier to work with now.
+
+### 4. Spot Instance Capacity Issues
+ASG kept failing with InsufficientInstanceCapacity for spot instances in us-east-1. 
+Fixed by adding multiple instance types via override blocks (t3.medium, t3.large, 
+m5.large, m5a.large, m4.large) and switching spot allocation strategy from 
+lowest-price to capacity-optimized. This gives ASG more options to find 
+available spot capacity.
 
 ## Workflow for Terraform State Management
 
