@@ -21,19 +21,16 @@ variable "env" {
 variable "desired_size" {
   type        = number
   description = "desired number of worker nodes"
-  default     = 3
 }
 
 variable "min_size" {
   type        = number
   description = "minimum number of worker nodes"
-  default     = 1
 }
 
 variable "max_size" {
   type        = number
   description = "max number of worker nodes"
-  default     = 5
 }
 
 variable "sso_admin_arn" {
@@ -52,14 +49,13 @@ variable "github_tf_role_arn" {
 }
 
 variable "vpc_cidr" {
-  description = "VPC CIDR block for security group rules"
   type        = string
+  description = "VPC CIDR block for security group rules"
 } 
 
 variable "service_cidr" {
   type        = string
   description = "Kubernetes service CIDR block"
-  default     = "172.20.0.0/16"
 }
 
 variable "kubernetes_version" {
@@ -70,23 +66,19 @@ variable "kubernetes_version" {
 variable "ami_owner" {
   type        = string
   description = "AWS account ID that owns the EKS AMI"
-  default     = "602401143452"
 }
 
 variable "instance_type" {
   type        = string
   description = "EC2 instance type for worker nodes"
-  default     = "t3.medium"
 }
 
 variable "on_demand_base_capacity" {
   type        = number
   description = "minimum number of on-demand instances in ASG"
-  default     = 0
 }
 
 variable "on_demand_percentage" {
   type        = number
   description = "% of on-demand instances in ASG"
-  default     = 20
 } 

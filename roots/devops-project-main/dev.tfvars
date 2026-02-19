@@ -13,5 +13,11 @@ cluster_name = "eks-dev-cluster"
 
 kubernetes_version      = "1.34"
 instance_type           = "t3.medium"
-on_demand_percentage    = 100
-on_demand_base_capacity = 3
+on_demand_percentage    = 20
+on_demand_base_capacity = 0
+
+desired_size = 3
+min_size     = 1
+max_size     = 5
+ami_owner    = "602401143452"
+service_cidr = "172.20.0.0/16"

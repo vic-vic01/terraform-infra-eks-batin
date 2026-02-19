@@ -71,3 +71,28 @@ variable "on_demand_base_capacity" {
   type        = number
   description = "base number of on-demand instances in ASG"
 }
+
+variable "desired_size" {
+  type        = number
+  description = "desired number of worker nodes"
+}
+
+variable "min_size" {
+  type        = number
+  description = "minimum number of worker nodes"
+}
+
+variable "max_size" {
+  type        = number
+  description = "max number of worker nodes"
+}
+
+variable "ami_owner" {
+  type        = string
+  description = "AWS account ID that owns the EKS AMI"
+}
+
+variable "service_cidr" {
+  type        = string
+  description = "Kubernetes service CIDR block"
+}
