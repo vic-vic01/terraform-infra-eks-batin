@@ -24,7 +24,7 @@ jobs:
       run:
         working-directory: ./roots/devops-project-main
         shell: bash
-    environment: dev
+    # environment: dev
     steps:
       # equivalent of "git clone repo"
       - uses: actions/checkout@v3
