@@ -3,11 +3,7 @@ provider "aws" {
 }
 
 terraform {
-  #   backend "s3" {
-  #     # bucket         = "project-x-state-bucket-staging"
-  #     key            = "terraform.tfstate"
-  #     region         = "us-east-1"
-  #     dynamodb_table = "terraformlock"
-  #   }
+  backend "s3" {
+    region = "us-east-1"
+  }
 }
-
